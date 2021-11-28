@@ -1,90 +1,47 @@
 import numpy as np
+import pandas as pd
+import collections
 
-def distancia_euclideana(ponto_a, ponto_b):
-    """devolve a distancia entre os pontos A e B"""
+def calc_dist(ponto_a,ponto_b):
+    """ Calculo da Distância Euclidiana entre os Pontos A e B"""
     return np.sqrt(np.sum(np.square(ponto_a-ponto_b)))
 
+#importação do data set
+dataset = pd.read_csv(r'C:\Users\Asus\Desktop\TG\TG_KNN\iris_csv.csv')
+
+#Trocar os nomes das classes na coluna class por numeros
+dataset.loc[dataset['class'] == "Iris-setosa",'class'] = 0
+dataset.loc[dataset['class'] == "Iris-versicolor",'class'] = 1
+dataset.loc[dataset['class'] == "Iris-virginica",'class'] = 2
+
+#De seguida dividimos o dataset nos seu atributos e labels:
+#A variavel X contém  as primeiras 4 colunas do dataser (i.e. atributos) e y comtém as labels.
+
+X = dataset.iloc[:, :-1].values
+y = dataset.iloc[:, 4].values
+
+
 class KNN_example:
+    def __init__(self,K=3):
+        self.K=K
+        
+    def predict(self,v,X=X,y=y,K=3):
+        
+        """"definição da função de predição de dados"""
+        distancias=[calc_dist(v,X[i,:]) for i in range(len(X))]
+        
+        """"ordernar os vetores mais proximos do ponto que queremos descobrir"""
     
-    def __init__(self,K=3, max_iterations = 1000):
-        self.K = K
-        self.max_iterations=max_iterations
-
-
-
-    def fit(self, X):
-        """Utiliza os pontos X para encontrar os K centroides que melhor se
-        adaptam aos dados
-        Input:
-            X-Matriz de dados
-        Output:
-        centroides-Os K centros para a matriz X"""
+        k_vetor_mais_proximo=np.argsort(distancias)[:K]
         
-        self.X = X
-        self.numero_exemplos, self.numero_atributos= X.shape
-        #iniciar os centroides
-        self.centroides = self._iniciar_centroides()
+        """descobrir a label dos pontos mais proximos"""
+        
+        k_label_mais_proximo=[y[i] for i in k_vetor_mais_proximo]
+        
+        """"tendo em conta as labels dos pontos mais proximos vamos descobrir a label do vetor em teste"""
         
         
-        #otimizar 
-            for _ in range(self.max_iterations):
-                
-                #criar clusters
-                self.clusters = self._criar_clusters(self)
-                #atualizar centroides
-                centroides_antigos = self.centroides
-                self.centroides = self._atualizar_centroides(self)
-                
-            
-        
-                #confirmar paragem
-                should_stop = self._confirmar_paragem(self.centroides, centroides_antigos)
-        
-   
-    
-    def _iniciar_centroides(self, noise=0.1):
-        centroides=[]
-        for _ in range(self.K):
-            centroide_array=[]
-            for atributo in range(self.numero_atributos):
-                media_atributo=np.mean(self.X[:,atributo])
-                centroide_valor_atributo=(media_atributo
-                                          + noise
-                                          * ((np.random.rand()*2)-1)
-                                          * media_atributo)
-                centroide_array.append(centroide_valor_atributo)
-            centroides.append(np.array(centroide_array))
-        return centroides
-        
-    def _criar_clusters(self, centroides):
-        
-        clusters= [() for _ in range(self.K)]
-        
-        for i in range(self.numero_exemplos):
-            ponto = X[i,:]
-            centroide_mais_perto=self.centroide_mais_perto(ponto)
-            cluster[centroide_mais_perto.append].append(i)
-        return clusters
-    
-    def _centroide_mais_perto(self, ponto):
-        distancia_aos_centroides = [distancia_euclideana(ponto_a,centroide) 
-                                    for centroide in self.centroides]
-        centroide_mais_perto = np.minarg(distancia_aos_centroides)
-        return centroide_mais_perto
+        label_output=collections.Counter(k_label_mais_proximo).most_common(1)[0][0]
        
-    def _atualizar_centroides(self):
-        centroides = _iniciar_centroides(noise=0.1)
-        
-        count=0
-        for cluster in self.clusters:
-            centro_de_gravidade = np.mean(X[cluster],axis=0)
-            centroide[count] = centro_de_gravidade
-            count +=1
-        return centroides
-    def _confirmar_paragem(self.centroides, centroides_antigos):
-        distancia_entre_centroides = [distancia_euclideana(centroides[i], centroides_antigos[i]) 
-                                      for i in range(len(centroides))] 
-        should_stop = True if np.sum(distancia_entre_centroides
     
-    def predict(self):
-        pass
+        return label_output
